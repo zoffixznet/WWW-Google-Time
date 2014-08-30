@@ -219,7 +219,7 @@ Takes no arguments. Returns the argument passed to the last call to C<get_time()
     ### dies with "Could not find time data for that location"
 
 When C<get_time()> fails (by returning either undef or empty list) the reason for failure
-will be available via C<error()> method. The "falure" is both, not being able to find time
+will be available via C<error()> method. The "failure" is both, not being able to find time
 data for the given location or network errors. The error message will say which one it is.
 
 =head2 C<ua>
@@ -230,7 +230,7 @@ data for the given location or network errors. The error message will say which 
     $t->ua( LWP::UserAgent->new( agent => 'Mozilla' ) );
 
 Takes one optional argument which must fit the same criteria as the C<ua> argument to the
-contructor (C<new()> method). Returns the object currently beign used for accessing Google.
+constructor (C<new()> method). Returns the object currently being used for accessing Google.
 
 =head1 EXAMPLES
 
