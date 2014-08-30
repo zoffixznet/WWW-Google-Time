@@ -47,9 +47,9 @@ sub get_time {
         return $self->_set_error( $response, 'net' );
     }
 
-open my $fh, '>', 'out.txt' or die;
-print $fh $response->decoded_content.'\n';
-close $fh;
+# open my $fh, '>', 'out.txt' or die;
+# print $fh $response->decoded_content.'\n';
+# close $fh;
 
     my %data;
     # print $response->content;
