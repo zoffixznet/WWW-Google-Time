@@ -1,169 +1,158 @@
 # NAME
 
-WWW::BashOrg - simple module to obtain quotes from http://bash.org/ and http://www.qdb.us/
+WWW::Google::Time - get time for various locations via Google
 
 # SYNOPSIS
 
-    #!/usr/bin/env perl
-
     use strict;
     use warnings;
-    use WWW::BashOrg;
 
-    die "Usage: perl $0 quote_number\n"
-        unless @ARGV;
+    use WWW::Google::Time;
 
-    my $b = WWW::BashOrg->new;
+    my $t = WWW::Google::Time->new;
 
-    $b->get_quote(shift)
-        or die $b->error . "\n";
+    $t->get_time("Toronto")
+        or die $t->error;
 
-    print "$b\n";
+    printf "It is %s, %s (%s) %s %s, %s in %s\n",
+        @{ $t->data }{qw/
+            day_of_week  time  time_zone  month  month_day  year  where
+        /};
 
 # DESCRIPTION
 
-A simple a module to obtain either a random quote or a quote by number from
-either [http://bash.org/](http://bash.org/) or [http://qdb.us/](http://qdb.us/).
+Module is very simple, it takes a name of some place and returns the current time in that place
+(as long as Google has that information).
 
 # CONSTRUCTOR
 
 ## `new`
 
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-key-value.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-object.png">
-</div>
+    my $t = WWW::Google::Time->new;
 
-    my $b = WWW::BashOrg->new;
-
-    my $b = WWW::BashOrg->new(
-        ua  => LWP::UserAgent->new(
-            agent   => 'Opera 9.5',
-            timeout => 30,
-        )
+    my $t = WWW::Google::Time->new(
+        ua => LWP::UserAgent->new( agent => "Mozilla", timeout => 30 )
     );
 
-Returns a newly baked `WWW::BashOrg` object. All arguments are options, so far there
-are only two arguments are available:
-
-### `ua`
-
-    my $b = WWW::BashOrg->new(
-        ua  => LWP::UserAgent->new(
-            agent   => 'Opera 9.5',
-            timeout => 30,
-        ),
-    );
-
-__Optional__. Takes an [LWP::UserAgent](https://metacpan.org/pod/LWP::UserAgent) object as a value. This object will be used for
-fetching quotes from [http://bash.org/](http://bash.org/) or [http://qdb.us/](http://qdb.us/). __Defaults to:__
-
-    LWP::UserAgent->new(
-        agent   => 'Opera 9.5',
-        timeout => 30,
-    )
-
-### `default_site`
-
-    my $b = WWW::BashOrg->new(
-        default_site  => 'qdb'
-    );
-
-__Optional__. Which site to retrieve quotes from by default when not
-specified in the method
-parameters, `'qdb'` or `'bash'`. Default is `'bash'`.
+Creates and returns a new `WWW::Google::Time` object. So far takes one key/value pair argument
+\- `ua`. The value of the `ua` argument must be an object akin to [LWP::UserAgent](https://metacpan.org/pod/LWP::UserAgent) which
+has a `get()` method that returns an [HTTP::Response](https://metacpan.org/pod/HTTP::Response) object. The default object for the
+`ua` argument is `LWP::UserAgent->new( agent => "Mozilla", timeout => 30 )`
 
 # METHODS
 
-## `get_quote`
+## `get_time`
 
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-scalar-scalar-optional.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-scalar.png">
-</div>
+    $t->get_time('Toronto')
+        or die $t->error;
 
-    my $quote = $b->get_quote('202477')
-        or die $b->error;
+Instructs the object to fetch time information for the given location. Takes one mandatory
+argument which is a name of the place for which you want to obtain time data. On failure
+returns either undef or an empty list, depending on the context, and the reason for
+failure can be obtained via `error()` method. On success returns a hashref with
+the following keys/values:
 
-    $quote = $b->get_quote('1622', 'qdb')
-        or die $b->error;
+    $VAR1 = {
+          'time' => '7:00 AM',
+          'time_zone' => 'EDT',
+          'day_of_week' => 'Saturday',
+          'month' => 'August',
+          'month_day' => '30',
+          'year' => '2014',
+          'where' => 'Toronto, ON, Canada'
+    };
 
-The first argument, the number of the quote to fetch, is mandatory.
-You may also optionally specify
-which site to retrieve the quote from
-(`'qdb'` or `'bash'`). If an error occurs, returns
-`undef` and the reason for failure can be obtained using `error()` method.
+### `time`
 
-## `random`
+    'time' => '7:00 AM',
 
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-scalar-optional.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-scalar.png">
-</div>
+The `time` key contains the time for the location as a string.
 
-    my $quote = $b->random('bash')
-        or die $b->error;
+### `time_zone`
 
-Has one optional argument, which site to return quote from
-(`'qdb'` or `'bash'`). Returns a random quote.
-If an error occurs, returns `undef` and the reason for failure can be obtained using
-`error()` method.
+    'time_zone' => 'EDT',
+
+The `time_zone` key contains the time zone in which the given location is.
+
+### `day_of_week`
+
+    'day_of_week' => 'Saturday',
+
+The `day_of_week` key contains the day of the week that is right now in the location given.
+
+### `month`
+
+    'month' => 'August',
+
+The `month` key contains the current month at the location.
+
+### `month_day`
+
+    'month_day' => '30',
+
+The `month_day` key contains the date of the month at the location.
+
+### `year`
+
+    'year' => '2014',
+
+The `year` key contains the year at the location.
+
+### `where`
+
+    'where' => 'Toronto, ON, Canada'
+
+The `where` key contains the name of the location to which the keys described above correlate.
+This is basically how Google interpreted the argument you gave to `get_time()` method.
+
+## `data`
+
+    $t->get_time('Toronto')
+        or die $t->error;
+
+    my $time_data = $t->data;
+
+Must be called after a successful call to `get_time()`. Takes no arguments.
+Returns the exact same hashref the last call to `get_time()` returned.
+
+## `where`
+
+    $t->get_time('Toronto')
+        or die $t->error;
+
+    print $t->where; # prints 'Toronto'
+
+Takes no arguments. Returns the argument passed to the last call to `get_time()`.
 
 ## `error`
 
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-no-args.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-scalar.png">
-</div>
+    $t->get_time("Some place that doesn't exist")
+        or die $t->error;
+    ### dies with "Could not find time data for that location"
 
-    my $quote = $b->random
-        or die $b->error;
-
-If an error occurs during execution of `random()` or `get_quote()` method will return
-the reason for failure.
-
-## `quote`
-
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-no-args.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-scalar.png">
-</div>
-
-    my $last_quote = $b->quote;
-
-    my $last_quote = "$b";
-
-Takes no arguments. Must be called after a successful call to either `random()` or
-`get_quote()`. Returns the same return value as last `random()` or `get_quote()` returned.
-__This method is overloaded__ thus you can interpolate `WWW::Bashorg` in a string to obtain
-the quote.
+When `get_time()` fails (by returning either undef or empty list) the reason for failure
+will be available via `error()` method. The "failure" is both, not being able to find time
+data for the given location or network errors. The error message will say which one it is.
 
 ## `ua`
 
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-object.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-object.png">
-</div>
+    my $ua = $t->ua;
+    $ua->proxy('http', 'http://foobarbaz.com');
 
-    my $old_ua = $b->ua;
+    $t->ua( LWP::UserAgent->new( agent => 'Mozilla' ) );
 
-    $b->ua(
-        LWP::UserAgent->new( timeout => 20 ),
-    );
+Takes one optional argument which must fit the same criteria as the `ua` argument to the
+constructor (`new()` method). Returns the object currently being used for accessing Google.
 
-Returns current [LWP::UserAgent](https://metacpan.org/pod/LWP::UserAgent) object that is used for fetching quotes. Takes one
-option argument that must be an [LWP::UserAgent](https://metacpan.org/pod/LWP::UserAgent) object (or compatible) - this object
-will be used for any future requests.
+# EXAMPLES
 
-## `default_site`
+The `examples/` directory of this distribution contains an executable script that uses this
+module.
 
-<div>
-    <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/in-scalar-optional.png"> <img alt="" src="http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/out-scalar.png">
-</div>
+# TO DO
 
-    if ( $b->default_site eq 'qdb' ) {
-        $b->default_site('bash');
-    }
-
-Returns current default site to retrieve quotes from. Takes an optional argument to change this setting (`'qdb'` or `'bash'`).
-
-<div>
-    <div style="background: url(http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/hr.png);height: 18px;"></div>
-</div>
+Sometimes Google returns multiple times.. e.g. "time in Norway" returns three results.
+Would be nice to be able to return all three results in an arrayref or something
 
 # REPOSITORY
 
@@ -172,7 +161,7 @@ Returns current default site to retrieve quotes from. Takes an optional argument
 </div>
 
 Fork this module on GitHub:
-[https://github.com/zoffixznet/WWW-BashOrg](https://github.com/zoffixznet/WWW-BashOrg)
+[https://github.com/zoffixznet/WWW-Google-Time](https://github.com/zoffixznet/WWW-Google-Time)
 
 <div>
     </div></div>
@@ -185,10 +174,10 @@ Fork this module on GitHub:
 </div>
 
 To report bugs or request features, please use
-[https://github.com/zoffixznet/WWW-BashOrg/issues](https://github.com/zoffixznet/WWW-BashOrg/issues)
+[https://github.com/zoffixznet/WWW-Google-Time/issues](https://github.com/zoffixznet/WWW-Google-Time/issues)
 
 If you can't access GitHub, you can email your request
-to `bug-WWW-BashOrg at rt.cpan.org`
+to `bug-WWW-Google-Time at rt.cpan.org`
 
 <div>
     </div></div>
@@ -214,9 +203,7 @@ to `bug-WWW-BashOrg at rt.cpan.org`
     <div style="display: table; height: 91px; background: url(http://zoffix.com/CPAN/Dist-Zilla-Plugin-Pod-Spiffy/icons/section-contributors.png) no-repeat left; padding-left: 120px;" ><div style="display: table-cell; vertical-align: middle;">
 </div>
 
-<div>
-    <span style="display: inline-block; text-align: center;"> <a href="http://metacpan.org/author/JBARRETT"> <img src="http://www.gravatar.com/avatar/6a296a67e2590050b299c30751a01919?d=http%3A%2F%2Fwww.gravatar.com%2Favatar%2F3a47418b43981827dbc0e147c2f9199c" alt="JBARRETT" style="display: block; margin: 0 3px 5px 0!important; border: 1px solid #666; border-radius: 3px; "> <span style="color: #333; font-weight: bold;">JBARRETT</span> </a> </span>
-</div>
+Patches by Neil Stott and Zach Hauri ([http://zach.livejournal.com/](http://zach.livejournal.com/))
 
 <div>
     </div></div>
