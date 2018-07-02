@@ -54,8 +54,8 @@ sub get_time {
     my %data;
     # print $response->content;
     @data{ qw/time day_of_week month month_day year time_zone where/ } = $response->content
-    =~ m{<div class="_rkc _Peb">(.+?)</div><div class="_HOb _Qeb"> (\w+), <span style="white-space:nowrap">(\w+) (\d+), (\d+)</span> \((.+?)\) </div><span class="_HOb _Qeb">\s+Time in (.+?) </span>}
-         # <div class="_rkc _Peb">12:23 PM</div><div class="_HOb _Qeb"> Wednesday, <span style="white-space:nowrap">December 31, 2014</span> (EST) </div><span class="_HOb _Qeb">  Time in Toronto, ON </span></div></div>
+    =~ m{<div class="SFt5jb uRIxYb">(.+?)</div><div class="Pt7r9e NjTIc"> (\w+), <span style="white-space:nowrap">(\w+) (\d+), (\d+)</span> \((.+?)\) </div><span class="Pt7r9e NjTIc">\s+Time in (.+?) </span>}
+    # <div class="SFt5jb uRIxYb">3:41 AM</div><div class="Pt7r9e NjTIc"> Monday, <span style="white-space:nowrap">June 4, 2018</span> (GMT-4) </div><span class="Pt7r9e NjTIc">  Time in Toronto, ON, Canada </span></div></div>
     or do {
         return $self->_set_error("Could not find time data for that location");
     };
